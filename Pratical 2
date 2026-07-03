@@ -1,0 +1,58 @@
+import numpy as np 
+import matplotlib.pyplot as plt
+# Define the Hebbian Network 
+class HebbianNetwork:
+    def __init__(self,input_size):
+        self.weights = np.zeros(input_size)
+        self.bias = 0.0
+        self.weight_history = []
+
+    # Training Architecture of the Network 
+    def train(self,X,Y):
+        self.weight_history.append(np.copy(self.weights))
+
+        for x,y in zip(X,Y):
+            self.weights += x*y
+            self.bias += y 
+            self.weight_history.append(np.copy(self.weights))
+    
+    # Testing of the Network Architecture (Prediction)
+    def predict(self,x):
+        net_input = np.dot(self.weights,x) + self.bias
+        return 1 if net_input >= 0 else -1 
+        
+# Setting the Bipolar Data with AND & OR Gates. 
+if __name__ == "__main__":
+
+    X = np.array([[-1,-1],[-1,1],[1,-1],[1,1]])
+    and_targets = np.array([-1,-1,-1,1])
+    or_targets = np.array([1,1,1,-1])
+    
+    print("Initializing the Hebbian Network")
+    net = HebbianNetwork(input_size=2)
+
+    print("Training on the AND Gate Bipolar Data")
+    net.train(X,and_targets)
+    
+    print("\n----Final Test Results ----")
+    print(f"{"Inputs":<12} | {"Predicted":<10} | {"Expected":<10}")
+    print("-"*40)
+    for x,y in zip(X,and_targets):
+        pred = net.predict(x)
+        print(f"{str(x):<12} | {pred:^10} | {y:^10}")
+
+    history = np.array(net.weight_history)
+
+    plt.style.use("dark_background")
+    plt.figure(figsize=(10,6))
+    plt.plot(history[:,0],marker="o",linewidth=2,color="#00FFFF",label="Weight $w_1$")
+    plt.plot(history[:,1],marker="s",linewidth=2,color="#00FF00",label="Weight $w_2$")
+    plt.title("Weight Update Evolution (AND) Gate ",fontsize=14,fontweight="bold")
+    plt.xlabel("Time Step (Epoch / Row)",fontsize=12)
+    plt.ylabel("Weight Value",fontsize=12)
+    plt.grid(True,linestyle="--",alpha=0.3,color="white")
+    plt.legend(fontsize=12)
+    plt.xticks(ticks=range(len(history)),labels=[f"Step {i}" for i in range(len(history))])
+    plt.tight_layout()
+    print("\nDisplaying the weight evolution graph")
+    plt.show()
