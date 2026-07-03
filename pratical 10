@@ -1,0 +1,31 @@
+# Relation R2: B → C
+R2 = np.array([
+    [0.9, 0.2],   # B1 to C1, C2
+    [0.5, 1.0],   # B2 to C1, C2
+    [0.4, 0.7]    # B3 to C1, C2
+])
+
+# Max-min composition
+def max_min_composition(R1, R2):
+    A_rows, B_cols = R1.shape
+    B_rows, C_cols = R2.shape
+    assert B_cols == B_rows, "Incompatible matrix dimensions for composition"
+    
+    R3 = np.zeros((A_rows, C_cols))
+
+    for i in range(A_rows):      # Iterate over A
+        for j in range(C_cols):  # Iterate over C
+            min_vals = []
+            for k in range(B_cols):  # Iterate over B
+                min_vals.append(min(R1[i][k], R2[k][j]))
+            R3[i][j] = max(min_vals)
+    
+    return R3
+
+# Perform composition
+R3 = max_min_composition(R1, R2)
+
+# Display result
+df = pd.DataFrame(R3, index=["A1", "A2"], columns=["C1", "C2"])
+print("Max-Min Composition (A → C):")
+print(df)
