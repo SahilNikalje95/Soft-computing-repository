@@ -1,0 +1,31 @@
+import numpy as np
+
+# 1. Define the single pair of patterns
+x = np.array([1, -1, 1])
+y = np.array([1, -1])
+
+# 2. Train: Calculate the Weight Matrix using Hebbian Outer Product
+w = np.outer(x, y)
+
+def recall_bam(x_input):
+    """
+    Passes data forward to get Y, then immediately 
+    passes that Y backward to see if it retrieves X.
+    """
+    # Forward pass: Guess Y from X using standard Weights
+    y_out = np.sign(np.dot(x_input, w))
+    
+    # Backward pass: Guess X from Y using Transposed Weights (w.T)
+    x_out = np.sign(np.dot(y_out, w.T))
+    
+    return x_out, y_out
+
+# 3. Test the network
+x_out, y_out = recall_bam(x)
+
+print("\nBAM Network")
+print("Recalled Y:", y_out)
+print("Recalled X:", x_out)
+
+
+
