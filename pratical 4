@@ -1,0 +1,76 @@
+import numpy as np
+
+def hamming_network(input_vector, exemplar_vectors, max_iters=20):
+    input_vector = np.array(input_vector)
+    exemplar_vectors = np.array(exemplar_vectors)
+    
+    # --- STEP 1: LAYER 1 (Feedforward Matching Score) ---
+    # TEXTBOOK CORRECTION: Weights must be Exemplar / 2, Bias must be N / 2
+    weights = exemplar_vectors / 2.0
+    bias = input_vector.size / 2.0
+    
+    # Calculate initial scores. This will now equal exactly how many bits match!
+    scores = np.dot(weights, input_vector) + bias
+    print(f"Initial similarity scores (Layer 1): {scores}")
+    
+    # --- STEP 2: LAYER 2 (MaxNet Competitive Inhibition) ---
+    y = scores.copy()
+    epsilon = 0.1  # Inhibition factor (must be < 1/M)
+    n = len(y)
+    
+    # Create the inhibition matrix
+    inhibition_matrix = np.full((n, n), -epsilon)
+    np.fill_diagonal(inhibition_matrix, 1.0)
+    
+    print("\nCompetitive layer iterations:")
+    for i in range(max_iters):
+        # Apply the matrix math
+        y_new = np.dot(inhibition_matrix, y)
+        
+        # Activation Function: ReLU (Clamp negatives to 0)
+        y_new = np.maximum(y_new, 0)
+        
+        print(f"Iteration {i+1}: {np.round(y_new, 4)}")
+        
+        # Stop condition: If only 1 neuron (or zero in a tie) has energy left
+        if np.count_nonzero(y_new > 0) <= 1:
+            print("-> Convergence reached!")
+            y = y_new
+            break
+            
+        y = y_new
+        
+    # Find the winner
+    winner_index = np.argmax(y)
+    
+    # Check for a complete tie (all zeros)
+    if np.all(y == 0):
+        print("\nRESULT: It's a complete tie! The input is equally far from all exemplars.")
+    else:
+        print(f"\nRESULT: Input vector is closest to exemplar X{winner_index + 1}")
+        
+    return winner_index, y
+
+if __name__ == "__main__":
+    # Our standard memory patterns
+    exemplars = [
+        [ 1, -1,  1, -1],  # X1
+        [-1, -1,  1,  1],  # X2
+        [ 1,  1,  1,  1]   # X3
+    ]
+    
+    print("==================================================")
+    print("TEST 1: The 'Trick' Vector (From your screenshot)")
+    print("==================================================")
+    # This input is exactly 1 mistake away from all 3 exemplars.
+    tie_vector = [1, -1, 1, 1] 
+    hamming_network(tie_vector, exemplars)
+    
+    
+    print("\n\n==================================================")
+    print("TEST 2: A Clear Winner Vector")
+    print("==================================================")
+    # This input is very close to X1, but has 1 mistake at the start.
+    # It should score a 3 for X1, and lower for the others.
+    clear_vector = [-1, -1, 1, -1]
+    hamming_network(clear_vector, exemplars)
