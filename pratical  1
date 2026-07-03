@@ -1,4 +1,3 @@
-
 def fuzzy_union(A, B):
     """
     Fuzzy Union (A U B) = max(A(x), B(x))
