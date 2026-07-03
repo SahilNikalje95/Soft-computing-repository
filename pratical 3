@@ -1,0 +1,61 @@
+pip install minisom scikit-learn
+
+
+from minisom import MiniSom
+from sklearn.datasets import load_wine
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Patch
+
+# --- 1. PREPARE THE DATA ---
+wine = load_wine()
+X = wine.data          # The 13 chemical features (alcohol, malic acid, etc.)
+y = wine.target        # The answers: 0, 1, or 2 (representing 3 wine classes)
+label_names = wine.target_names
+
+# SOMs calculate physical distance (Euclidean). 
+# We MUST scale the data between 0 and 1 so large numbers don't overpower small numbers.
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)
+
+# --- 2. BUILD AND TRAIN THE SOM ---
+# Create a 10x10 grid. input_len=13 because the wine dataset has 13 features.
+som = MiniSom(x=10, y=10, input_len=13, sigma=1.0, learning_rate=0.5)
+
+# Initialize the weights randomly, then train for 200 iterations
+som.random_weights_init(X_scaled)
+som.train_random(X_scaled, 200)
+
+# --- 3. VISUALIZE THE RESULTS ---
+plt.figure(figsize=(10, 9))
+
+# Plot the U-Matrix (Distance Map). 
+# Darker colors = large distances between neurons (Cluster Boundaries)
+# Lighter colors = neurons are very similar (Inside a cluster)
+plt.pcolor(som.distance_map().T, cmap='bone_r') 
+plt.colorbar(label='distance')
+
+colors = ['r', 'g', 'b'] # Class 0 = Red, Class 1 = Green, Class 2 = Blue
+
+# Loop through every single wine in our dataset
+for i, sample in enumerate(X_scaled):
+    # Find the winning neuron (BMU - Best Matching Unit) on the 10x10 grid for this specific wine
+    w = som.winner(sample)
+    
+    # Place the class number (0, 1, or 2) exactly in the center of the winning neuron's square
+    # FIXED SYNTAX HERE: Consolidated into a proper plt.text() call
+    plt.text(w[0] + 0.5, w[1] + 0.5, str(y[i]),
+             color=colors[y[i]], 
+             fontdict={'weight': 'bold', 'size': 9},
+             ha='center', va='center') # ha/va centers the text perfectly in the box
+
+# Create a custom legend for the top right corner
+legend_elements = [Patch(facecolor=c, label=label_names[i]) for i, c in enumerate(colors)]
+plt.legend(handles=legend_elements, loc='upper right')
+
+plt.title("Kohonen Self-Organizing Map (Wine Dataset)", fontweight='bold')
+plt.grid(True, alpha=0.3) # Added slight transparency to the grid so text is easier to read
+plt.show()
+
+
