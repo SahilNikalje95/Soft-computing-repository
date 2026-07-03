@@ -1,0 +1,70 @@
+def fuzzy_union(A, B):
+    """
+    Union: max(μ_A(x), μ_B(x))
+    """
+    result = {}
+    # Combine all unique keys from both sets
+    all_keys = set(A.keys()).union(B.keys())
+    
+    for key in all_keys:
+        # If a key is missing from a set, default its value to 0
+        result[key] = max(A.get(key, 0), B.get(key, 0))
+    return result
+
+def fuzzy_intersection(A, B):
+    """
+    Intersection: min(μ_A(x), μ_B(x))
+    """
+    result = {}
+    all_keys = set(A.keys()).union(B.keys())
+    
+    for key in all_keys:
+        result[key] = min(A.get(key, 0), B.get(key, 0))
+    return result
+
+def fuzzy_complement(A):
+    """
+    Complement: 1 - μ_A(x)
+    Note: Using round() to avoid floating point artifacts like 0.3000000004
+    """
+    result = {key: round(1 - value, 2) for key, value in A.items()}
+    return result
+
+def fuzzy_difference(A, B):
+    """
+    Difference: μ_A(x) - μ_A∩B(x)
+    (Using the specific definition provided in the prompt)
+    """
+    intersection = fuzzy_intersection(A, B)
+    result = {}
+    
+    for key in A:
+        # Calculate the difference and round it cleanly
+        diff = A.get(key, 0) - intersection.get(key, 0)
+        result[key] = round(diff, 2)
+    return result
+
+if __name__ == "__main__":
+    # Define fuzzy sets A and B
+    A = {1: 0.3, 2: 0.7, 3: 1.0, 4: 0.6}
+    B = {2: 0.8, 3: 0.4, 4: 0.9, 5: 1.0}
+    
+    print("====================================")
+    print("Fuzzy Set A:", A)
+    print("Fuzzy Set B:", B)
+    print("====================================\n")
+    
+    print("Union (A U B):")
+    print(fuzzy_union(A, B))
+    
+    print("\nIntersection (A ∩ B):")
+    print(fuzzy_intersection(A, B))
+    
+    print("\nComplement (~A):")
+    print(fuzzy_complement(A))
+    
+    print("\nDifference (A - B):")
+    print(fuzzy_difference(A, B))
+
+
+
